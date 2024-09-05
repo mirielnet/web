@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import $ from 'jquery';
 import 'bootstrap/dist/css/bootstrap.min.css';  // Bootstrap のスタイルをインポート
 
@@ -76,11 +76,9 @@ footer {
 
 function App() {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const sections = ['#intro', '#about-me', '#accounts'];
-    
-    // 変数を useRef で管理
-    const startY = React.useRef(null);
-    const endY = React.useRef(null);
+    const sections = useRef([]);
+    const startY = useRef(null);
+    const endY = useRef(null);
 
     useEffect(() => {
         // CSSを動的に追加
@@ -90,12 +88,12 @@ function App() {
         document.head.appendChild(styleSheet);
 
         // 初期表示設定
-        $(sections[currentIndex]).show();
+        $(sections.current[currentIndex]).show();
 
         const handleScroll = (e) => {
             if (e.originalEvent.deltaY > 0) {
                 // Down scroll
-                if (currentIndex < sections.length - 1) {
+                if (currentIndex < sections.current.length - 1) {
                     showSection(currentIndex + 1);
                 }
             } else {
@@ -117,7 +115,7 @@ function App() {
         const handleTouchEnd = () => {
             if (startY.current > endY.current + 5) {
                 // Down scroll
-                if (currentIndex < sections.length - 1) {
+                if (currentIndex < sections.current.length - 1) {
                     showSection(currentIndex + 1);
                 }
             } else if (startY.current < endY.current - 5) {
@@ -129,8 +127,8 @@ function App() {
         };
 
         const showSection = (index) => {
-            $(sections[currentIndex]).fadeOut(500, () => {
-                $(sections[index]).fadeIn(500);
+            $(sections.current[currentIndex]).fadeOut(500, () => {
+                $(sections.current[index]).fadeIn(500);
                 setCurrentIndex(index);
             });
         };
@@ -150,24 +148,24 @@ function App() {
 
     return (
         <div>
-            <section id="intro">
+            <section id="intro" ref={(el) => (sections.current[0] = el)}>
                 <div>
                     <h1>みりえるどっとねっと</h1>
                     <h2>Mirielのサイトへようこそ。</h2>
                     <p>下にスクロールしてください</p>
                     <div className="scroll-indicator">↓</div>
                     <div className="banners">
-                        <a href="https://tmksoft.net" target="_blank" rel="noopener">
+                        <a href="https://tmksoft.net" target="_blank" rel="noopener noreferrer">
                             <img src="https://tmksoft.net/banner.png" alt="TMKSoft Banner" />
                         </a>
-                        <a href="https://hakurei.win" target="_blank" rel="noopener">
+                        <a href="https://hakurei.win" target="_blank" rel="noopener noreferrer">
                             <img src="https://hakurei.win/assets/mybanner.webp" alt="Hakurei Banner" />
                         </a>
                     </div>
                 </div>
             </section>
 
-            <section id="about-me" style={{ display: 'none' }}>
+            <section id="about-me" style={{ display: 'none' }} ref={(el) => (sections.current[1] = el)}>
                 <div>
                     <h1>About Me</h1>
                     <p>Miriel は 2014年 からTwitter(現 X) で活動を開始した人である。主にプログラム関連などでやっている。</p>
@@ -184,14 +182,14 @@ function App() {
                 </div>
             </section>
 
-            <section id="accounts" style={{ display: 'none' }}>
+            <section id="accounts" style={{ display: 'none' }} ref={(el) => (sections.current[2] = el)}>
                 <div>
                     <h1>Accounts</h1>
                     <p>
-                        Twitter(現 X) <a href="https://x.com/mirielnet" target="_blank" rel="noopener">@mirielnet</a>
+                        Twitter(現 X) <a href="https://x.com/mirielnet" target="_blank" rel="noopener noreferrer">@mirielnet</a>
                         <br />Rosekey (ActivityPub): <a href="https://p0.waka.style/@miriel">@miriel@p0.waka.style</a>
-                        <br />GitHub (Git): <a href="https://github.com/mirielnet" target="_blank" rel="noopener">@mirielnet</a>
-                        <br />TikTok: <a href="https://tiktok.com/@mirielnet" target="_blank" rel="noopener">@mirielnet</a>
+                        <br />GitHub (Git): <a href="https://github.com/mirielnet" target="_blank" rel="noopener noreferrer">@mirielnet</a>
+                        <br />TikTok: <a href="https://tiktok.com/@mirielnet" target="_blank" rel="noopener noreferrer">@mirielnet</a>
                         <br />Instagram: <a href="https://instagram.com/mirielnet">@mirielnet</a>
                         <br />E-Mail: <a href="mailto:contact@waka.style">contact@waka.style</a> or <a href="mailto:me@miriel.net">me@miriel.net</a>
                     </p>
