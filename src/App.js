@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import $ from 'jquery';
-import 'bootstrap/dist/css/bootstrap.min.css';  // Bootstrap のスタイルをインポート
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-// CSS スタイルを直接このファイルに追加
 const appStyles = `
 body, html {
     margin: 0;
@@ -14,6 +13,30 @@ body, html {
     color: white;
     font-family: 'Play', sans-serif;
 }
+
+nav {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: nowrap; /* 改行を防ぐ */
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 0 10px;
+    white-space: nowrap; /* 改行を禁止 */
+}
+
+nav a.active {
+    border-bottom: 2px solid white;
+}
+
 
 section {
     height: 100vh;
@@ -29,7 +52,7 @@ section {
 
 #intro { z-index: 3; }
 #about-me { z-index: 2; }
-#accounts { z-index: 1; }
+#accounts, #links { z-index: 1; }
 
 h1, h2 {
     margin: 0;
@@ -41,10 +64,14 @@ h1, h2 {
 }
 
 .banners {
-    margin-top: 20px;
     display: flex;
     justify-content: center;
     gap: 20px;
+    flex-wrap: wrap; /* 小さい画面では縦並びに */
+}
+
+.banners a {
+    flex: 1 1 auto; /* 自動で幅調整 */
 }
 
 .banners img {
@@ -52,16 +79,23 @@ h1, h2 {
     height: 80px;
 }
 
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
+@media (max-width: 768px) {
+    .banners {
+        flex-direction: column; /* スマホでは縦並び */
+        gap: 10px; /* 間隔を少し狭める */
     }
-    40% {
-        transform: translateY(-10px);
+
+    .banners img {
+        max-width: 100%; /* 画像の最大幅を制限 */
+        height: auto; /* 高さを自動調整 */
     }
-    60% {
-        transform: translateY(-5px);
-    }
+    
+    /* モバイル向けのレスポンシブ調整 */
+    @media (max-width: 600px) {
+        nav {
+            gap: 10px; /* 狭い画面では隙間を小さく */
+        }
+}
 }
 
 footer {
@@ -81,23 +115,19 @@ function App() {
     const endY = useRef(null);
 
     useEffect(() => {
-        // CSSを動的に追加
         const styleSheet = document.createElement('style');
         styleSheet.type = 'text/css';
         styleSheet.innerText = appStyles;
         document.head.appendChild(styleSheet);
 
-        // 初期表示設定
         $(sections.current[currentIndex]).show();
 
         const handleScroll = (e) => {
             if (e.originalEvent.deltaY > 0) {
-                // Down scroll
                 if (currentIndex < sections.current.length - 1) {
                     showSection(currentIndex + 1);
                 }
             } else {
-                // Up scroll
                 if (currentIndex > 0) {
                     showSection(currentIndex - 1);
                 }
@@ -114,12 +144,10 @@ function App() {
 
         const handleTouchEnd = () => {
             if (startY.current > endY.current + 5) {
-                // Down scroll
                 if (currentIndex < sections.current.length - 1) {
                     showSection(currentIndex + 1);
                 }
             } else if (startY.current < endY.current - 5) {
-                // Up scroll
                 if (currentIndex > 0) {
                     showSection(currentIndex - 1);
                 }
@@ -146,22 +174,36 @@ function App() {
         };
     }, [currentIndex]);
 
+    const scrollToSection = (index) => {
+        // すべてのセクションをまず非表示にする
+        sections.current.forEach((section, i) => {
+            if (i !== index) {
+                $(section).hide();  // ターゲット以外のセクションを隠す
+            }
+        });
+        
+        const section = sections.current[index];
+        if (section) {
+            $(section).fadeIn(500);  // ターゲットセクションを滑らかに表示する
+            setCurrentIndex(index);
+        }
+    };    
+
     return (
         <div>
+            <nav>
+                <a href="#intro" onClick={(e) => { e.preventDefault(); scrollToSection(0); }} className={currentIndex === 0 ? 'active' : ''}>Intro</a>
+                <a href="#about-me" onClick={(e) => { e.preventDefault(); scrollToSection(1); }} className={currentIndex === 1 ? 'active' : ''}>About Me</a>
+                <a href="#accounts" onClick={(e) => { e.preventDefault(); scrollToSection(2); }} className={currentIndex === 2 ? 'active' : ''}>Accounts</a>
+                <a href="#links" onClick={(e) => { e.preventDefault(); scrollToSection(3); }} className={currentIndex === 3 ? 'active' : ''}>Links</a>
+            </nav>
+
             <section id="intro" ref={(el) => (sections.current[0] = el)}>
                 <div>
                     <h1>みりえるどっとねっと</h1>
                     <h2>Mirielのサイトへようこそ。</h2>
                     <p>下にスクロールしてください</p>
                     <div className="scroll-indicator">↓</div>
-                    <div className="banners">
-                        <a href="https://tmksoft.net" target="_blank" rel="noopener noreferrer">
-                            <img src="https://tmksoft.net/banner.png" alt="TMKSoft Banner" />
-                        </a>
-                        <a href="https://hakurei.win" target="_blank" rel="noopener noreferrer">
-                            <img src="https://hakurei.win/assets/mybanner.webp" alt="Hakurei Banner" />
-                        </a>
-                    </div>
                 </div>
             </section>
 
@@ -196,8 +238,22 @@ function App() {
                 </div>
             </section>
 
+            <section id="links" style={{ display: 'none' }} ref={(el) => (sections.current[3] = el)}>
+                <div>
+                    <h1>Links</h1>
+                    <div className="banners">
+                        <a href="https://tmksoft.net" target="_blank" rel="noopener noreferrer">
+                            <img src="https://tmksoft.net/banner.png" alt="TMKSoft Banner" />
+                        </a>
+                        <a href="https://hakurei.win" target="_blank" rel="noopener noreferrer">
+                            <img src="https://hakurei.win/assets/mybanner.webp" alt="Hakurei Banner" />
+                        </a>
+                    </div>
+                </div>
+            </section>
+
             <footer>
-                Copyright © 2014-2024 Miriel(@mirielnet) All Rights Reserved.
+                <p>Copyright © 2014-2024 Miriel(@mirielnet) All Rights Reserved.</p>
             </footer>
         </div>
     );
